@@ -3,17 +3,23 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { fetchFinishedMatches } from "@/lib/football-api";
 import { calculatePoints } from "@/lib/scoring";
+import { requireAdmin } from "@/lib/auth";
 
 // GET: Cron job sync kết quả từ football-data.org
-// Chạy mỗi 1 phút qua Vercel Cron
+// Có thể gọi qua Vercel Cron (dùng CRON_SECRET) hoặc admin đã login
 export async function GET(request: Request) {
   try {
-    // Verify cron secret (Vercel tự thêm header này)
+    // Verify: cron secret HOẶC admin đã login
     const authHeader = request.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
 
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      // Không có cron secret hợp lệ → kiểm tra admin session
+      try {
+        await requireAdmin();
+      } catch {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
     }
 
     // Lấy trận đã kết thúc từ API

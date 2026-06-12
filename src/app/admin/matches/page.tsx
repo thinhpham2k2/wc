@@ -98,7 +98,11 @@ export default function AdminMatchesPage() {
     try {
       const res = await fetch("/api/sync");
       const data = await res.json();
-      setToast({ message: `Sync: ${data.synced} trận cập nhật`, type: "success" });
+      if (!res.ok) {
+        setToast({ message: data.error || "Sync thất bại", type: "error" });
+        return;
+      }
+      setToast({ message: `Sync: ${data.synced ?? 0} trận cập nhật`, type: "success" });
       fetchMatches();
     } catch {
       setToast({ message: "Sync thất bại", type: "error" });
