@@ -23,6 +23,7 @@ interface MatchData {
 
 export default function HomePage() {
   const { user } = useAuth();
+  const [live, setLive] = useState<MatchData[]>([]);
   const [upcoming, setUpcoming] = useState<MatchData[]>([]);
   const [recent, setRecent] = useState<MatchData[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -34,6 +35,9 @@ export default function HomePage() {
         .then((data) => {
           const now = new Date();
           const matches = data.matches || [];
+          setLive(
+            matches.filter((m: MatchData) => !m.isCompleted && new Date(m.kickoffTime) <= now)
+          );
           setUpcoming(
             matches
               .filter((m: MatchData) => !m.isCompleted && new Date(m.kickoffTime) > now)
@@ -88,6 +92,23 @@ export default function HomePage() {
 
       {user && (
         <>
+          {/* Trận đang diễn ra */}
+          {live.length > 0 && (
+            <section className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-bold">🔴 Đang diễn ra</h2>
+                <Link href="/matches" className="text-xs text-green-600 hover:underline">
+                  Xem tất cả →
+                </Link>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {live.map((match) => (
+                  <MatchCard key={match.id} match={match} showPrediction={false} />
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Trận sắp diễn ra */}
           {upcoming.length > 0 && (
             <section className="mb-6">
