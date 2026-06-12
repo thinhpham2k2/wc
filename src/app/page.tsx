@@ -21,9 +21,23 @@ interface MatchData {
   group: string | null;
 }
 
+interface LiveMatchData {
+  externalId: number;
+  teamA: string;
+  teamB: string;
+  teamACrest: string | null;
+  teamBCrest: string | null;
+  scoreA: number | null;
+  scoreB: number | null;
+  minute: number | null;
+  status: string;
+  stage: string | null;
+  group: string | null;
+}
+
 export default function HomePage() {
   const { user } = useAuth();
-  const [live, setLive] = useState<MatchData[]>([]);
+  const [live, setLive] = useState<LiveMatchData[]>([]);
   const [upcoming, setUpcoming] = useState<MatchData[]>([]);
   const [recent, setRecent] = useState<MatchData[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -35,9 +49,6 @@ export default function HomePage() {
         .then((data) => {
           const now = new Date();
           const matches = data.matches || [];
-          setLive(
-            matches.filter((m: MatchData) => !m.isCompleted && new Date(m.kickoffTime) <= now)
-          );
           setUpcoming(
             matches
               .filter((m: MatchData) => !m.isCompleted && new Date(m.kickoffTime) > now)
@@ -50,6 +61,11 @@ export default function HomePage() {
               .slice(0, 4)
           );
         });
+
+      // Fetch live matches từ football-data.org
+      fetch("/api/matches/live")
+        .then((res) => res.json())
+        .then((data) => setLive(data.matches || []));
 
       fetch("/api/leaderboard")
         .then((res) => res.json())
@@ -103,7 +119,36 @@ export default function HomePage() {
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 {live.map((match) => (
-                  <MatchCard key={match.id} match={match} showPrediction={false} />
+                  <div
+                    key={match.externalId}
+                    className="bg-white dark:bg-gray-800 rounded-lg border border-red-200 dark:border-red-800 p-4"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-red-500 font-medium animate-pulse">
+                        ⏱️ {match.minute != null ? `${match.minute}'` : "LIVE"}
+                      </span>
+                      {match.stage && (
+                        <span className="text-xs text-gray-400">{match.stage}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {match.teamACrest && (
+                          <img src={match.teamACrest} alt="" className="w-6 h-6" />
+                        )}
+                        <span className="font-medium text-sm">{match.teamA}</span>
+                      </div>
+                      <span className="text-lg font-bold text-red-600">
+                        {match.scoreA ?? 0} - {match.scoreB ?? 0}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm">{match.teamB}</span>
+                        {match.teamBCrest && (
+                          <img src={match.teamBCrest} alt="" className="w-6 h-6" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </section>

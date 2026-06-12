@@ -36,7 +36,8 @@ export async function POST(request: Request) {
       },
     });
 
-    const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${inviteToken}`;
+    const origin = process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin;
+    const inviteUrl = `${origin}/invite/${inviteToken}`;
 
     return NextResponse.json({
       user: { id: user.id, username: user.username },

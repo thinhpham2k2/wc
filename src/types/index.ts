@@ -44,6 +44,7 @@ export interface FootballApiMatch {
   id: number;
   utcDate: string;
   status: string;
+  minute: number | null;
   matchday: number;
   stage: string;
   group: string | null;

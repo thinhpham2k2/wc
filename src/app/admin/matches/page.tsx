@@ -127,7 +127,7 @@ export default function AdminMatchesPage() {
         setToast({ message: data.error || "Tạo invite thất bại", type: "error" });
         return;
       }
-      setInviteLink(`${window.location.origin}/invite/${data.token}`);
+      setInviteLink(data.inviteUrl);
       setToast({ message: "Đã tạo invite link!", type: "success" });
     } catch {
       setToast({ message: "Tạo invite thất bại", type: "error" });
